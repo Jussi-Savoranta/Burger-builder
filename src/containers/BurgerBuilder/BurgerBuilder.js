@@ -32,6 +32,7 @@ class BurgerBuilder extends Component {
     }
 
     componentDidMount() {
+        console.log(this.props);
         axios.get('https://react-my-burger-eb0f4-default-rtdb.firebaseio.com/ingredients.json')
             .then(response => {
                 this.setState({ ingredients: response.data })
@@ -101,31 +102,21 @@ class BurgerBuilder extends Component {
     }
 
     purchaseContinueHandler = () => {
-        // alert('You continue!');
-        this.setState({ loading: true });
-        const order = {
-            ingredients: this.state.ingredients,
-            price: this.state.totalPrice,
-            // just a reminder that in actual shop you should calculate the price on server
-            // so that user can't manipulate the price that gets sent to server
-            customer: {
-                name: 'Jii',
-                address: {
-                    street: 'Teststreet 1',
-                    zipCode: '00100',
-                    country: 'Finland'
-                },
-                email: 'test@test.com'
-            },
-            delivery: 'fastest'
+        // if we just want to push another page without anything else we could just use
+        // this.props.history.push('/chekout');
+        // But becaus we need to get the ingredients from the BurgerBuilder so we need to insert jsx code where path is one of the parameters
+        const queryParams = [];
+        for (let i in this.state.ingredients) {
+            queryParams.push(encodeURIComponent(i) + '=' + encodeURIComponent(this.state.ingredients[i]));
         }
-        axios.post('/orders.json', order) // base url is created in axios-orders.js -file
-            .then(response => {
-                this.setState({ loading: false, purchasing: false });
-            })
-            .catch(error => {
-                this.setState({ loading: false, purchasing: false });
-            });
+        queryParams.push('price=' + this.state.totalPrice);
+        const queryString = queryParams.join('&'); // making a string of ingredients
+        // and adding that string to the path 
+        this.props.history.push({
+            pathname: '/checkout',
+            search: '?' + queryString
+        });
+
     }
 
     render() {
